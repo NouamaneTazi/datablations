@@ -188,11 +188,13 @@ def submit_job(job):
     os.system("sbatch job.sbatch")
     # you can check the file job.sbatch to see what is being submitted
 
-# Ensure the log directory exists
-os.system("mkdir -p logs")
 
-# Launch the batch jobs
-submit_job(makejob())
+if __name__ == "__main__":
+    # Ensure the log directory exists
+    os.system("mkdir -p logs")
 
-# View logs
-# tail -f  logs/<JOB_ID>.out logs/<JOB_ID>.err
+    # Launch the batch jobs
+    submit_job(makejob())
+
+    # View logs
+    # tail -f  logs/<JOB_ID>.out logs/<JOB_ID>.err
