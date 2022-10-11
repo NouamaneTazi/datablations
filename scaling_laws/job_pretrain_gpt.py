@@ -15,27 +15,23 @@ def makejob(CHECKPOINT_PATH=CHECKPOINT_PATH,
             TENSORBOARD_PATH=TENSORBOARD_PATH,
             MICRO_BATCH_SIZE=8,
             GLOBAL_BATCH_SIZE=512,
-            TP_SIZE=2,
+            TP_SIZE=1,
             PP_SIZE=1,
-            # NLAYERS=24,
-            # NHIDDEN=2048,
-            # NHEADS=16,
-            # SEQ_LEN=2048,
-            NLAYERS=2,
-            NHIDDEN=8,
-            NHEADS=2,
-            SEQ_LEN=512,
-            FFN_HIDDEN_SIZE=16,
+            NLAYERS=24,
+            NHIDDEN=1024,
+            NHEADS=16,
+            FFN_HIDDEN_SIZE=4096,
+            SEQ_LEN=2048,
             # VOCAB_SIZE=50257,
-            SAVE_INTERVAL=50,
-            TRAIN_SAMPLES="10_000",
+            SAVE_INTERVAL=10000,
+            TRAIN_SAMPLES="73_242_187",
             NNODES=1,
             GPUS_PER_NODE=2,
-            LR=2e-4,
+            LR=3e-4,
             ):
     return f"""#!/bin/bash
 
-#SBATCH --job-name=1B3-alibi.slurm
+#SBATCH --job-name=test-alibi.slurm
 #SBATCH --nodes={NNODES}
 #SBATCH --ntasks-per-node=1          # crucial - only 1 task per dist per node!
 #SBATCH --cpus-per-task=40         # number of cores per tasks
@@ -44,8 +40,8 @@ def makejob(CHECKPOINT_PATH=CHECKPOINT_PATH,
 #SBATCH --time 12:00:00              # maximum execution time (HH:MM:SS)
 #SBATCH -p pilot
 #SBATCH --account=project_462000119
-#SBATCH -o logs/tr7a-1B3-alibi.%j.out
-#SBATCH -e logs/tr7a-1B3-alibi.%j.err
+#SBATCH -o logs/tr7a-test-alibi.%j.out
+#SBATCH -e logs/tr7a-test-alibi.%j.err
 
 export NCCL_SOCKET_IFNAME=hsn0,hsn1,hsn2,hsn3
 # export NCCL_DEBUG=INFO    # debugging
@@ -65,14 +61,14 @@ six_ALL_CCFRWORK=/scratch/project_462000119
 # TODO: modify these for your training setup, just Ctrl-F replace <YOUR_TRAINING_NAME>
 DATA_OUTPUT_PATH=/project/project_462000119/nouatazi/scaling_laws_experiments
 CHECKPOINT_PATH=$DATA_OUTPUT_PATH/checkpoints
-REPO_PATH=$DATA_OUTPUT_PATH/tr7a-1B3-alibi-logs
+REPO_PATH=$DATA_OUTPUT_PATH/tr7a-test-alibi-logs_tp_{TP_SIZE}_pp_{PP_SIZE}
 TENSORBOARD_PATH=$REPO_PATH/tensorboard
 CODECARBON_PATH=$REPO_PATH/codecarbon
 LOGS_PATH=$REPO_PATH/logs
 MEGATRON_DEEPSPEED_REPO=/project/project_462000119/nouatazi/Megatron-DeepSpeed
 
 
-# TODO: you may change the dataset, some examples are at tr3-1B3-baseline (tr3 = c4 + t5-tokenizer, tr3m = the Pile)
+# TODO: you may change the dataset, some examples are at tr3-test-baseline (tr3 = c4 + t5-tokenizer, tr3m = the Pile)
 VOCAB_FILE=$MEGATRON_DEEPSPEED_REPO/data/gpt2/vocab.json
 MERGE_FILE=$MEGATRON_DEEPSPEED_REPO/data/gpt2/merges.txt
 DATA_PATH=$six_ALL_CCFRWORK/data/pile/megatron_data/meg-gpt2_pile_text_document
@@ -90,7 +86,7 @@ cd $MEGATRON_DEEPSPEED_REPO
 MASTER_ADDR=$(scontrol show hostnames $SLURM_JOB_NODELIST | head -n 1)
 MASTER_PORT=6000
 
-# TODO: this is our base config for 1B3, edit PP/TP/batch size/model config if smaller or bigger
+# TODO: this is our base config for test, edit PP/TP/batch size/model config if smaller or bigger
 GPUS_PER_NODE={GPUS_PER_NODE}
 NNODES={NNODES}
 PP_SIZE={PP_SIZE} # NLAYERS must be a multiple of PP_SIZE here
@@ -227,7 +223,7 @@ export CMD=" \\
 echo $CMD
 
 # to debug - add echo (it exits and prints what it would have launched)
-srun --jobid $SLURM_JOBID bash -c '$LAUNCHER --node_rank $SLURM_PROCID $CMD' 2>&1 | tee -a $LOGS_PATH/tr7a-1B3-alibi.$SLURM_JOBID.out
+srun --jobid $SLURM_JOBID bash -c '$LAUNCHER --node_rank $SLURM_PROCID $CMD' 2>&1 | tee -a $LOGS_PATH/tr7a-test-alibi.$SLURM_JOBID.out
 
 """
 
