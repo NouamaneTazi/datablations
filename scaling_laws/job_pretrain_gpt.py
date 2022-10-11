@@ -59,7 +59,7 @@ six_ALL_CCFRWORK=/scratch/project_462000119
 
 
 # TODO: modify these for your training setup, just Ctrl-F replace <YOUR_TRAINING_NAME>
-DATA_OUTPUT_PATH=/project/project_462000119/nouatazi/scaling_laws_experiments
+DATA_OUTPUT_PATH=/scratch/project_462000119/nouatazi/scaling_laws_experiments
 CHECKPOINT_PATH=$DATA_OUTPUT_PATH/checkpoints
 REPO_PATH=$DATA_OUTPUT_PATH/tr7a-test-alibi-logs_tp_{TP_SIZE}_pp_{PP_SIZE}
 TENSORBOARD_PATH=$REPO_PATH/tensorboard
@@ -124,6 +124,7 @@ EXIT_OPTS=" \\
     --exit-duration-in-mins 1190 \\
     "
 
+# add --checkpoint-activations \\ for big models
 GPT_ARGS=" \\
     --num-layers $NLAYERS \\
     --hidden-size $NHIDDEN \\
@@ -140,7 +141,6 @@ GPT_ARGS=" \\
     --loss-scale 12 \\
     --clip-grad 1.0 \\
     --fp16 \\
-    --checkpoint-activations \\
     --position-embedding-type alibi \\
     $OPTIMIZER_ARGS \\
     $EXIT_OPTS \\
