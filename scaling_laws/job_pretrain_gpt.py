@@ -13,8 +13,8 @@ def makejob(CHECKPOINT_PATH=CHECKPOINT_PATH,
             MERGE_FILE=MERGE_FILE, 
             DATA_PATH=DATA_PATH, 
             TENSORBOARD_PATH=TENSORBOARD_PATH,
-            MICRO_BATCH_SIZE=1,
-            GLOBAL_BATCH_SIZE=16,
+            MICRO_BATCH_SIZE=8,
+            GLOBAL_BATCH_SIZE=512,
             TP_SIZE=1,
             PP_SIZE=1,
             NLAYERS=24,
@@ -102,58 +102,58 @@ SEQ_LEN={SEQ_LEN}
 
 SAVE_INTERVAL={SAVE_INTERVAL}
 
-OPTIMIZER_ARGS=" \
-    --optimizer adam \
-    --adam-beta1 0.9 \
-    --adam-beta2 0.999 \
-    --adam-eps 1e-8 \
-    --lr {LR} \
-    --min-lr 1e-5 \
-    --lr-decay-style cosine \
-    --lr-decay-samples 73_242_187 \
-    --lr-warmup-samples 183_105 \
-    --clip-grad 1.0 \
-    --weight-decay 1e-1 \
+OPTIMIZER_ARGS=" \\
+    --optimizer adam \\
+    --adam-beta1 0.9 \\
+    --adam-beta2 0.999 \\
+    --adam-eps 1e-8 \\
+    --lr {LR} \\
+    --min-lr 1e-5 \\
+    --lr-decay-style cosine \\
+    --lr-decay-samples 73_242_187 \\
+    --lr-warmup-samples 183_105 \\
+    --clip-grad 1.0 \\
+    --weight-decay 1e-1 \\
     "
 
-EXIT_OPTS=" \
-    --exit-duration-in-mins 1190 \
+EXIT_OPTS=" \\
+    --exit-duration-in-mins 1190 \\
     "
 
-GPT_ARGS=" \
-    --num-layers $NLAYERS \
-    --hidden-size $NHIDDEN \
-    --num-attention-heads $NHEADS \
-    --ffn-hidden-size $FFN_HIDDEN_SIZE \
-    --seq-length $SEQ_LEN \
-    --max-position-embeddings $SEQ_LEN \
-    --micro-batch-size $MICRO_BATCH_SIZE \
-    --global-batch-size $GLOBAL_BATCH_SIZE \
-    --rampup-batch-size 32 32 2_000_000 \
-    --train-samples $TRAIN_SAMPLES \
-    --vocab-file $VOCAB_FILE \
-    --merge-file $MERGE_FILE \
-    --loss-scale 12 \
-    --clip-grad 1.0 \
-    --fp16 \
-    --checkpoint-activations \
-    --position-embedding-type alibi \
-    $OPTIMIZER_ARGS \
-    $EXIT_OPTS \
+GPT_ARGS=" \\
+    --num-layers $NLAYERS \\
+    --hidden-size $NHIDDEN \\
+    --num-attention-heads $NHEADS \\
+    --ffn-hidden-size $FFN_HIDDEN_SIZE \\
+    --seq-length $SEQ_LEN \\
+    --max-position-embeddings $SEQ_LEN \\
+    --micro-batch-size $MICRO_BATCH_SIZE \\
+    --global-batch-size $GLOBAL_BATCH_SIZE \\
+    --rampup-batch-size 32 32 2_000_000 \\
+    --train-samples $TRAIN_SAMPLES \\
+    --vocab-file $VOCAB_FILE \\
+    --merge-file $MERGE_FILE \\
+    --loss-scale 12 \\
+    --clip-grad 1.0 \\
+    --fp16 \\
+    --checkpoint-activations \\
+    --position-embedding-type alibi \\
+    $OPTIMIZER_ARGS \\
+    $EXIT_OPTS \\
     "
 
-OUTPUT_ARGS=" \
-    --log-interval 200 \
-    --save-interval $SAVE_INTERVAL \
-    --eval-interval 1000 \
-    --eval-iters 100 \
-    --tensorboard-dir $TENSORBOARD_PATH \
-    --tensorboard-queue-size 5 \
-    --log-timers-to-tensorboard \
-    --log-batch-size-to-tensorboard \
-    --log-validation-ppl-to-tensorboard \
+OUTPUT_ARGS=" \\
+    --log-interval 200 \\
+    --save-interval $SAVE_INTERVAL \\
+    --eval-interval 1000 \\
+    --eval-iters 100 \\
+    --tensorboard-dir $TENSORBOARD_PATH \\
+    --tensorboard-queue-size 5 \\
+    --log-timers-to-tensorboard \\
+    --log-batch-size-to-tensorboard \\
+    --log-validation-ppl-to-tensorboard \\
     "
-# TODO: Add --codecarbon-dir $CODECARBON_PATH \ if you want to use codecarbon, not adding it for now to make the current
+# TODO: Add --codecarbon-dir $CODECARBON_PATH \\ if you want to use codecarbon, not adding it for now to make the current
 # series of experiments consistent, especially speed-wise. Adding it once Tr6 and Tr7 are done
 
 ZERO_STAGE=1
@@ -183,33 +183,33 @@ cat <<EOT > $config_json
 EOT
 
 
-DEEPSPEED_ARGS=" \
-    --deepspeed \
-    --deepspeed_config $config_json \
-    --zero-stage $ZERO_STAGE \
-    --deepspeed-activation-checkpointing \
+DEEPSPEED_ARGS=" \\
+    --deepspeed \\
+    --deepspeed_config $config_json \\
+    --zero-stage $ZERO_STAGE \\
+    --deepspeed-activation-checkpointing \\
     "
 
-export LAUNCHER="python -u -m torch.distributed.launch \
-    --nproc_per_node $GPUS_PER_NODE \
-    --nnodes $NNODES \
-    --master_addr $MASTER_ADDR \
-    --master_port $MASTER_PORT \
+export LAUNCHER="python -u -m torch.distributed.launch \\
+    --nproc_per_node $GPUS_PER_NODE \\
+    --nnodes $NNODES \\
+    --master_addr $MASTER_ADDR \\
+    --master_port $MASTER_PORT \\
     "
 
-export CMD=" \
-    `pwd`/pretrain_gpt.py \
-    --tensor-model-parallel-size $TP_SIZE \
-    --pipeline-model-parallel-size $PP_SIZE \
-    $GPT_ARGS \
-    $OUTPUT_ARGS \
-    --save $CHECKPOINT_PATH \
-    --load $CHECKPOINT_PATH \
-    --data-path $DATA_PATH \
-    --data-impl mmap \
-    --split 949,50,1 \
-    --distributed-backend nccl \
-     $DEEPSPEED_ARGS \
+export CMD=" \\
+    `pwd`/pretrain_gpt.py \\
+    --tensor-model-parallel-size $TP_SIZE \\
+    --pipeline-model-parallel-size $PP_SIZE \\
+    $GPT_ARGS \\
+    $OUTPUT_ARGS \\
+    --save $CHECKPOINT_PATH \\
+    --load $CHECKPOINT_PATH \\
+    --data-path $DATA_PATH \\
+    --data-impl mmap \\
+    --split 949,50,1 \\
+    --distributed-backend nccl \\
+     $DEEPSPEED_ARGS \\
     "
 
 # # clear old checkpoint as it'd mismatch while we sort things out
@@ -229,11 +229,13 @@ def submit_job(job):
     os.system("sbatch job.sbatch")
     # you can check the file job.sbatch to see what is being submitted
 
-# Ensure the log directory exists
-os.system("mkdir -p logs")
 
-# Launch the batch jobs
-submit_job(makejob())
+if __name__ == "__main__":
+    # Ensure the log directory exists
+    os.system("mkdir -p logs")
 
-# View logs
-# tail -f  logs/<JOB_ID>.out logs/<JOB_ID>.err
+    # Launch the batch jobs
+    submit_job(makejob())
+
+    # View logs
+    # tail -f  logs/<JOB_ID>.out logs/<JOB_ID>.err
