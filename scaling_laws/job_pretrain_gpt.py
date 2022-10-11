@@ -15,13 +15,17 @@ def makejob(CHECKPOINT_PATH=CHECKPOINT_PATH,
             TENSORBOARD_PATH=TENSORBOARD_PATH,
             MICRO_BATCH_SIZE=8,
             GLOBAL_BATCH_SIZE=512,
-            TP_SIZE=1,
+            TP_SIZE=2,
             PP_SIZE=1,
-            NLAYERS=24,
-            NHIDDEN=2048,
-            NHEADS=16,
-            SEQ_LEN=2048,
-            FFN_HIDDEN_SIZE=8192,
+            # NLAYERS=24,
+            # NHIDDEN=2048,
+            # NHEADS=16,
+            # SEQ_LEN=2048,
+            NLAYERS=2,
+            NHIDDEN=8,
+            NHEADS=2,
+            SEQ_LEN=512,
+            FFN_HIDDEN_SIZE=16,
             # VOCAB_SIZE=50257,
             SAVE_INTERVAL=50,
             TRAIN_SAMPLES="10_000",
@@ -42,6 +46,10 @@ def makejob(CHECKPOINT_PATH=CHECKPOINT_PATH,
 #SBATCH --account=project_462000119
 #SBATCH -o logs/tr7a-1B3-alibi.%j.out
 #SBATCH -e logs/tr7a-1B3-alibi.%j.err
+
+export NCCL_SOCKET_IFNAME=hsn0,hsn1,hsn2,hsn3
+# export NCCL_DEBUG=INFO    # debugging
+# export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 module --quiet purge
 module load cray-python

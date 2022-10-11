@@ -1,6 +1,7 @@
 import os
 import subprocess
 
+# Warning must have Megatron-DeepSpeed in the working directory
 CHECKPOINT_PATH="Megatron-DeepSpeed/checkpoints/gpt2"
 
 VOCAB_FILE="/project/project_462000119/nouatazi/data/gpt2/vocab.json"
@@ -41,6 +42,8 @@ def makejob(N_GPUS=2,
 #SBATCH -e logs/%j.err
 
 export NCCL_SOCKET_IFNAME=hsn0,hsn1,hsn2,hsn3
+# export NCCL_DEBUG=INFO    # debugging
+# export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
 module --quiet purge
 module load cray-python
